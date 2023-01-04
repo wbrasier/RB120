@@ -5,8 +5,9 @@ class Board
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # columns
                   [[1, 5, 9], [3, 5, 7]]              # diagonals
 
-  def initialize
+  def initialize(human_marker)
     @squares = {}
+    @human = human_marker
     reset
   end
 
@@ -70,7 +71,7 @@ class Board
   end
 
   def find_high_reward_square
-    [TTTGame::COMPUTER_MARKER, TTTGame::HUMAN_MARKER].each do |marker_check|
+    [TTTGame::COMPUTER_MARKER, @human.marker].each do |marker_check|
       WINNING_LINES.each do |line|
         squares = @squares.values_at(*line)
         if collect_markers(squares).count(marker_check) == 2
@@ -123,16 +124,15 @@ class Player
 end
 
 class TTTGame
-  HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
   ULTIMATE_WINNER = 5
 
-  attr_reader :board, :human, :computer
+  attr_reader :board, :human, :computer, :human_marker, :player_name,
+              :computer_name
   attr_accessor :first_to_move
 
   def play
     clear
-    display_welcome_message
     main_game
     display_goodbye_message
   end
@@ -140,8 +140,9 @@ class TTTGame
   private
 
   def initialize
-    @board = Board.new
-    @human = Player.new(HUMAN_MARKER)
+    display_welcome_message
+    @human = Player.new(pick_marker)
+    @board = Board.new(@human)
     @computer = Player.new(COMPUTER_MARKER)
     @current_marker = ''
     @@human_score = 0
@@ -150,6 +151,7 @@ class TTTGame
   end
 
   def display_welcome_message
+    system 'clear'
     puts "Welcome to Tic Tac Toe!"
     puts ""
   end
@@ -159,6 +161,7 @@ class TTTGame
   end
 
   def main_game
+    pick_and_assign_names
     pick_first_player
     loop do
       display_board
@@ -170,10 +173,22 @@ class TTTGame
     end
   end
 
+  def pick_marker
+    answer = ''
+    loop do
+      puts "Pick any single character aside from O to be your marker."
+      answer = gets.chomp
+      break if answer.size == 1 && answer != 'O'
+    end
+    @human_marker = answer
+  end
+
   def pick_first_player
     answer = ''
     loop do
-      puts "Who would you like to go first? Human, computer, or random? (h/c/r)"
+      puts "Who would you like to go first?"
+      puts "#{player_name} (human), #{computer_name} (computer), or random?"
+      puts "h, c, or r."
       answer = gets.chomp.downcase
       break if %(h c r).include?(answer)
       puts "Sorry select h, c, or r."
@@ -181,14 +196,25 @@ class TTTGame
     @current_marker = first_player_selection(answer)
   end
 
+  def pick_and_assign_names
+    answer = ''
+    loop do
+      puts "What is your name?"
+      answer = gets.chomp
+      break unless answer.empty?
+    end
+    @player_name = answer
+    @computer_name = ["Harry", 'Cynthia', 'Coco', 'Buddy'].sample
+  end
+
   def first_player_selection(first)
     @first_to_move = case first
                      when 'h'
-                       HUMAN_MARKER
+                       @human_marker
                      when 'c'
                        COMPUTER_MARKER
                      else
-                       [HUMAN_MARKER, COMPUTER_MARKER].sample
+                       [@human_marker, COMPUTER_MARKER].sample
                      end
   end
 
@@ -206,7 +232,8 @@ class TTTGame
   end
 
   def display_board
-    puts "You're a #{human.marker}. Computer is a #{computer.marker}"
+    puts "#{player_name} a #{human.marker}."
+    puts "#{computer_name} is a #{computer.marker}"
     puts "Reach #{ULTIMATE_WINNER} wins to be the ultimate winner!"
     puts ""
     board.draw
@@ -251,7 +278,7 @@ class TTTGame
     if board.winning_marker == human.marker
       puts "You won!"
     elsif board.winning_marker == computer.marker
-      puts "Computer won!"
+      puts "#{computer_name} won!"
     else
       puts "The board is full!"
     end
@@ -261,7 +288,7 @@ class TTTGame
 
   def display_overall_scores
     puts "You have won #{@@human_score} times."
-    puts "The computer has won #{@@computer_score} times."
+    puts "#{computer_name} has won #{@@computer_score} times."
     display_ultimate_winner if ultimate_winner?
   end
 
@@ -317,12 +344,12 @@ class TTTGame
       @current_marker = COMPUTER_MARKER
     else
       computer_moves
-      @current_marker = HUMAN_MARKER
+      @current_marker = @human_marker
     end
   end
 
   def human_turn?
-    @current_marker == HUMAN_MARKER
+    @current_marker == @human_marker
   end
 end
 
