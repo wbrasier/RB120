@@ -1,0 +1,10 @@
+---
+- Press Enter to continue through the instructions.
+- The goal of the game is to get as close as possible to 21 without exceeding it.
+- The dealer will hit (draw a card) until 17 points.
+- You can hit (draw a card) or stay (end your turn & not draw) as many times as you
+  like, but if you exceed 21 you bust and you lose!
+- Aces will be worth 1 or 11 points based on how many points are already in the hand.
+  Aces will be worth 11 points until the hand exceeds 21 points, then the Ace will
+  be worth 1 point.
+- The first to 5 total wins is the ultimate winner!
